@@ -14,17 +14,26 @@ import com.spotify_app.transfer.config.SpotifyConfig;
 import com.spotify_app.transfer.entity.UserDetails;
 import com.spotify_app.transfer.service.UserService;
 
+import se.michaelthelin.spotify.model_objects.specification.Paging;
+import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.User;
 
 import jakarta.servlet.http.HttpServletResponse;
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
+import se.michaelthelin.spotify.requests.data.library.SaveTracksForUserRequest;
+import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
 import se.michaelthelin.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest;
+
+import org.apache.hc.core5.http.ParseException;
 
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api")
@@ -129,4 +138,53 @@ public class SpotifyController {
 
         return null;
     }
+
+    @PostMapping("add-song")
+    public void addSong() {
+        // String[] ids = new String[] { trackID };
+
+        String[] ids = new String[] { "4xHWH1jwV5j4mBYRhxPbwZ" };
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setAccessToken(userService.getCurrentUser().getAccessToken())
+                .build();
+        SaveTracksForUserRequest saveTracksForUserRequest = spotifyApi.saveTracksForUser(ids)
+                .build();
+
+        try {
+            String string = saveTracksForUserRequest.execute();
+
+            System.out.println("Null: " + string);
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/getID")
+    public String getID() {
+        String songId = "";
+        String q = "Time Pink Floyd";
+
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setAccessToken(userService.getCurrentUser()
+                        .getAccessToken())
+                .build();
+        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(q)
+                // .market(CountryCode.SE)
+                // .limit(10)
+                // .offset(0)
+                // .includeExternal("audio")
+                .build();
+
+        try {
+            final Paging<Track> trackPaging = searchTracksRequest.execute();
+            Track track = trackPaging.getItems()[0];
+            songId = track.getId();
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return "Song ID: " + songId;
+
+    }
+
 }
