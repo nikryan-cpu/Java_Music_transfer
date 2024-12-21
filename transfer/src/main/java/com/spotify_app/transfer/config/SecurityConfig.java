@@ -25,7 +25,8 @@ public class SecurityConfig {
             .formLogin(formLogin -> formLogin
                 .loginPage("/login")
                 .permitAll()
-            );
+            ); // настроить логин страницу (заменить базовую на нормальную)
+            // запретить доступ к страницам без авторизации
         
         return http.build();
     }

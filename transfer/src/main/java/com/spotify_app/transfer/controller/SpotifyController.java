@@ -2,6 +2,10 @@ package com.spotify_app.transfer.controller;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +19,7 @@ import com.spotify_app.transfer.entity.UserDetails;
 import com.spotify_app.transfer.service.UserService;
 
 import se.michaelthelin.spotify.model_objects.specification.Paging;
+import se.michaelthelin.spotify.model_objects.specification.Playlist;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 import se.michaelthelin.spotify.model_objects.specification.User;
 
@@ -22,18 +27,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
+import se.michaelthelin.spotify.model_objects.special.SnapshotResult;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
-import se.michaelthelin.spotify.requests.data.library.SaveTracksForUserRequest;
+import se.michaelthelin.spotify.requests.data.playlists.AddItemsToPlaylistRequest;
+import se.michaelthelin.spotify.requests.data.playlists.CreatePlaylistRequest;
 import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
 import se.michaelthelin.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest;
 
 import org.apache.hc.core5.http.ParseException;
-
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import com.spotify_app.transfer.parser.YmParser;
 
 @RestController
 @RequestMapping("/api")
@@ -83,9 +89,9 @@ public class SpotifyController {
                                 "user-library-modify " +
                                 // "streaming " +
                                 // "app-remote-control " +
-                                // "playlist-read-private " +
-                                // "playlist-read-collaborative " +
-                                // "playlist-modify-public " +
+                                "playlist-read-private " +
+                                "playlist-read-collaborative " +
+                                "playlist-modify-public " +
                                 "playlist-modify-private "
                 // "ugc-image-upload"
                 )
@@ -139,52 +145,89 @@ public class SpotifyController {
         return null;
     }
 
-    @PostMapping("add-song")
-    public void addSong() {
-        // String[] ids = new String[] { trackID };
+    @PostMapping("add-playlist") // adding from playlist we get form yandex music
+    public void addPlaylist(@RequestParam("playlistName") String playlistName,
+            @RequestParam("playlistLink") String playlistLink) {
+        String accessToken = userService.getCurrentUser().getAccessToken();
+        String userId = userService.getCurrentUser().getRefId();
 
-        String[] ids = new String[] { "4xHWH1jwV5j4mBYRhxPbwZ" };
+        YmParser ymParser = new YmParser();
+        HashMap<String, List<String>> songs = ymParser.parsing(playlistLink);
+
+        List<String> urisList = getTracksURI(songs);
+
+        String[] uris = new String[] {};
+        uris = urisList.toArray(new String[0]);
+
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
-                .setAccessToken(userService.getCurrentUser().getAccessToken())
-                .build();
-        SaveTracksForUserRequest saveTracksForUserRequest = spotifyApi.saveTracksForUser(ids)
+                .setAccessToken(accessToken)
                 .build();
 
+        CreatePlaylistRequest createPlaylistRequest = spotifyApi.createPlaylist(userId, playlistName)
+                .build();
+
+        String playlistId = "";
         try {
-            String string = saveTracksForUserRequest.execute();
-
-            System.out.println("Null: " + string);
+            final Playlist playlist = createPlaylistRequest.execute();
+            playlistId = playlist.getId();
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             System.out.println("Error: " + e.getMessage());
         }
+
+        if (playlistId.isEmpty()) {
+            return;
+        }
+
+        AddItemsToPlaylistRequest addItemsToPlaylistRequest = spotifyApi
+                .addItemsToPlaylist(playlistId, uris)
+                .build();
+        try {
+            final SnapshotResult snapshotResult = addItemsToPlaylistRequest.execute();
+
+            System.out.println("Snapshot ID: " + snapshotResult.getSnapshotId());
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
     }
 
-    @GetMapping("/getID")
-    public String getID() {
-        String songId = "";
-        String q = "Time Pink Floyd";
+    private List<String> getTracksURI(HashMap<String, List<String>> songs) {
+        List<String> uris = new ArrayList<>();
 
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setAccessToken(userService.getCurrentUser()
                         .getAccessToken())
                 .build();
-        SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(q)
-                // .market(CountryCode.SE)
-                // .limit(10)
-                // .offset(0)
-                // .includeExternal("audio")
-                .build();
 
-        try {
-            final Paging<Track> trackPaging = searchTracksRequest.execute();
-            Track track = trackPaging.getItems()[0];
-            songId = track.getId();
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
+        for (Map.Entry<String, List<String>> entry : songs.entrySet()) {
+            String artist = entry.getKey();
+            List<String> songList = entry.getValue();
+
+            for (String song : songList) {
+                String q = artist + " " + song;
+                String uri = "";
+                Track track = null;
+
+                SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(q)
+                        .limit(1)
+                        .build();
+
+                try {
+                    final Paging<Track> trackPaging = searchTracksRequest.execute();
+
+                    track = trackPaging.getItems()[0];
+                } catch (IOException | SpotifyWebApiException | ParseException e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+
+                if (track != null) {
+                    uri = track.getUri();
+                    uris.add(uri);
+                }
+            }
         }
 
-        return "Song ID: " + songId;
+        return uris;
 
     }
-
 }
