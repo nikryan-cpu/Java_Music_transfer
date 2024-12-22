@@ -4,6 +4,7 @@ import com.spotify_app.transfer.entity.UserDetails;
 
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.model_objects.specification.User;
+import se.michaelthelin.spotify.model_objects.specification.Image;
 
 @Service
 public class UserService {
@@ -32,6 +33,11 @@ public class UserService {
 
         userDetails.setAccessToken(accessToken);
         userDetails.setRefreshToken(refreshToken);
+
+        Image[] images = user.getImages();
+        if (images != null && images.length > 0) {
+            userDetails.setAvatarUrl(images[0].getUrl());
+        }
 
         return userDetails;
     }

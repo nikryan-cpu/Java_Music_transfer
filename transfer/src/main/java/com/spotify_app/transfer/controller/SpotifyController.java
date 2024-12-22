@@ -11,6 +11,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -127,19 +128,36 @@ public class SpotifyController {
 
             userService.updateUser(user, credentials.getAccessToken(), credentials.getRefreshToken());
 
-            System.out.println("Expires in: " + credentials.getExpiresIn());
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+        // Redirect to frontend with user ID
+        response.sendRedirect("http://localhost:5173/home?id=" + user.getId());
 
-        response.sendRedirect(customIP + "/api/home?id=" + user.getId());
+        } catch (Exception e) {
+            System.out.println("Error in callback: " + e.getMessage());
+        // Redirect to frontend error page
+            response.sendRedirect("http://localhost:5173/error");
+        }
+    }
+
+    @GetMapping("user-avatar")
+    public ResponseEntity<String> getUserAvatar(@RequestParam("id") String userId) {
+        try {
+            UserDetails userDetails = userService.getCurrentUser();
+            if (userDetails == null || !userId.equals(userDetails.getRefId())) {
+                return ResponseEntity.badRequest().body("User not found or unauthorized");
+            }
+
+            String avatarUrl = userDetails.getAvatarUrl();
+            return ResponseEntity.ok(avatarUrl != null ? avatarUrl : "");
+        
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
 
     @GetMapping(value = "home")
     public String home(@RequestParam("id") String userId) {
-        UserDetails userDetails = userService.getCurrentUser();
         try {
-            return "Welcome " + name + "(" + userDetails.getRefId() + ")" + " to home page";
+            return "Welcome, " + name;
         } catch (Exception e) {
             System.out.println("Exception occurred while landing to home page: " + e);
         }
@@ -154,7 +172,7 @@ public class SpotifyController {
      * @param playlistLink the URL of the Yandex playlist
      */
     @PostMapping("add-playlist") // adding from playlist we get form yandex music
-    public void addPlaylist(@RequestParam("playlistName") String playlistName,
+    public String addPlaylist(@RequestParam("playlistName") String playlistName,
             @RequestParam("playlistLink") String playlistLink) {
         String accessToken = userService.getCurrentUser().getAccessToken();
         String userId = userService.getCurrentUser().getRefId();
@@ -163,8 +181,7 @@ public class SpotifyController {
         HashMap<String, List<String>> songs = ymParser.parsing(playlistLink);
 
         if (songs.isEmpty()) {
-            System.out.println("No songs available");
-            return;
+            return "No songs available";
         }
 
         List<String> urisList = getTracksURI(songs);
@@ -188,7 +205,7 @@ public class SpotifyController {
         }
 
         if (playlistId.isEmpty()) {
-            return;
+            return "Error creating playlist";
         }
 
         AddItemsToPlaylistRequest addItemsToPlaylistRequest = spotifyApi
@@ -201,7 +218,7 @@ public class SpotifyController {
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             System.out.println("Error: " + e.getMessage());
         }
-
+        return "Playlist created successfully";
     }
 
     private List<String> getTracksURI(HashMap<String, List<String>> songs) {

@@ -14,5 +14,5 @@ public class UserDetails implements Serializable {
     private String accessToken;
     private String refreshToken;
     private String refId;
-
+    private String avatarUrl;
 }

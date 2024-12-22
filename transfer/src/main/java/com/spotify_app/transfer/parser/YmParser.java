@@ -16,6 +16,9 @@ import java.util.regex.Pattern;
 public class YmParser {
     public HashMap<String, List<String>> parsing(String url) {
         HashMap<String, List<String>> data = new HashMap<>();
+        if (!isValidYandexMusicLink(url)) {
+            return data;
+        }
         
         try {
             // getting URL of GET request for playlist or album (they are different( )
@@ -128,7 +131,7 @@ public class YmParser {
         return data;
     }
 
-    private static final String YANDEX_MUSIC_URL_REGEX = "https?://music\\.yandex\\.ru/(playlist|album)/[0-9a-zA-Z_-]+";
+    private static final String YANDEX_MUSIC_URL_REGEX = "https:\\/\\/music\\.yandex\\.(?:ru|com)\\/(?:playlist|users|album|artist|label)\\/[^\\/]+(?:\\/playlists|\\/albums)?\\/?[^\\/]*\\/?[^\\/]*";
 
     private static final Pattern YANDEX_MUSIC_PATTERN = Pattern.compile(YANDEX_MUSIC_URL_REGEX);
 

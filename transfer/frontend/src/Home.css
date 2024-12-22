@@ -1,0 +1,80 @@
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #191414;
+  }
+  
+  .home-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .home-content h1 {
+    margin-bottom: 20px;
+  }
+  
+  
+  .add-playlist-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 24px;
+    color: #fff;
+    background-color: #1DB954;
+    border-radius: 25px;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    transition: transform 0.3s;
+  }
+
+  .user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgba(60, 60, 60, 0.9);
+    margin: 20px auto;
+  }
+  
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .home-box {
+    background: rgba(40, 40, 40, 0.9);
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 800px;
+    width: 90%;
+    margin: 20px auto;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .add-playlist-button:hover {
+    background-color: #1ed760;
+    transform: scale(1.1);
+  }
+
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .home-box{
+    animation: slide-in 0.5s ease-in-out;
+  }
