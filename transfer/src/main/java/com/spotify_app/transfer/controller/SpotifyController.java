@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.PostMapping;
 import com.spotify_app.transfer.parser.YmParser;
+
 
 @RestController
 @RequestMapping("/api")
@@ -145,6 +147,12 @@ public class SpotifyController {
         return null;
     }
 
+    /**
+     * Transfers Yandex playlist to newly created Spotify playlist.
+     *
+     * @param playlistName the name of the playlist we want to create
+     * @param playlistLink the URL of the Yandex playlist
+     */
     @PostMapping("add-playlist") // adding from playlist we get form yandex music
     public void addPlaylist(@RequestParam("playlistName") String playlistName,
             @RequestParam("playlistLink") String playlistLink) {
@@ -153,6 +161,11 @@ public class SpotifyController {
 
         YmParser ymParser = new YmParser();
         HashMap<String, List<String>> songs = ymParser.parsing(playlistLink);
+
+        if (songs.isEmpty()) {
+            System.out.println("No songs available");
+            return;
+        }
 
         List<String> urisList = getTracksURI(songs);
 
@@ -229,5 +242,64 @@ public class SpotifyController {
 
         return uris;
 
+    }
+
+    /**
+     * Adds songs from a Yandex playlist to an existing Spotify playlist.
+     *
+     * @param yandexPlaylistLink  the URL of the Yandex playlist
+     * @param spotifyPlaylistLink the URL of the Spotify playlist
+     */
+    @PostMapping("add-to-existing")
+    public void add_to_existing(@RequestParam("yandexLink") String yandexPlaylistLink,
+            @RequestParam("spotifyLink") String spotifyPlaylistLink) {
+        String accessToken = userService.getCurrentUser().getAccessToken();
+
+        YmParser ymParser = new YmParser();
+        HashMap<String, List<String>> songs = ymParser.parsing(yandexPlaylistLink);
+
+        if (songs.isEmpty()) {
+            System.out.println("No songs available");
+            return;
+        }
+
+        List<String> urisList = getTracksURI(songs);
+
+        String[] uris = new String[] {};
+        uris = urisList.toArray(new String[0]);
+
+        SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                .setAccessToken(accessToken)
+                .build();
+
+        String playlistId = extractPlaylistId(spotifyPlaylistLink);
+
+        if (playlistId.isEmpty()) {
+            return;
+        }
+
+        AddItemsToPlaylistRequest addItemsToPlaylistRequest = spotifyApi
+                .addItemsToPlaylist(playlistId, uris)
+                .build();
+        try {
+            final SnapshotResult snapshotResult = addItemsToPlaylistRequest.execute();
+
+            System.out.println("Snapshot ID: " + snapshotResult.getSnapshotId());
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+    }
+
+    private String extractPlaylistId(String url) {
+        String prefix = "/playlist/";
+        int startIndex = url.indexOf(prefix) + prefix.length();
+        int endIndex = url.indexOf("?", startIndex);
+
+        if (endIndex == -1) {
+            endIndex = url.length();
+        }
+
+        return url.substring(startIndex, endIndex);
     }
 }

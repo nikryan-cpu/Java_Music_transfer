@@ -12,23 +12,31 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class YmParser {
     public HashMap<String, List<String>> parsing(String url) {
         HashMap<String, List<String>> data = new HashMap<>();
+        
         try {
-            //getting URL of GET request for playlist
-            Pattern pattern = Pattern.compile("users/([^/]+)/playlists/(\\d+)");
-            Matcher matcher = pattern.matcher(url);
+            // getting URL of GET request for playlist or album (they are different( )
+            Pattern playlistPattern = Pattern.compile("users/([^/]+)/playlists/(\\d+)");
+            Pattern albumPattern = Pattern.compile("album/(\\d+)");
+            Matcher playlistMatcher = playlistPattern.matcher(url);
+            Matcher albumMatcher = albumPattern.matcher(url);
 
-            String newUrl = "";
-            if (matcher.find()) {
-                String owner = matcher.group(1);
-                String kinds = matcher.group(2);
-
-                newUrl = "https://music.yandex.ru/handlers/playlist.jsx?owner=" + owner + "&kinds=" + kinds + "&light=true";
-                System.out.println("New URL: " + newUrl);
+            String newUrl;
+            boolean isPlaylist = false;
+            if (playlistMatcher.find()) {
+                String owner = playlistMatcher.group(1);
+                String kinds = playlistMatcher.group(2);
+                newUrl = "https://music.yandex.ru/handlers/playlist.jsx?owner=" + owner + "&kinds=" + kinds
+                        + "&light=true";
+                isPlaylist = true;
+            } else if (albumMatcher.find()) {
+                String albumId = albumMatcher.group(1);
+                newUrl = "https://music.yandex.com/handlers/album.jsx?album=" + albumId + "&light=true";
             } else {
-                System.out.println("Invalid playlist URL format.");
+                return data;
             }
 
             Connection.Response response = Jsoup.connect(newUrl)
@@ -38,8 +46,15 @@ public class YmParser {
             String jsonResponse = response.body();
             JSONObject jsonObject = new JSONObject(jsonResponse);
 
-            //JSONArray tracks = jsonObject.getJSONObject("playlist").getJSONArray("tracks"); можно сделать если всего треков меньше 100
-            JSONArray ids = jsonObject.getJSONObject("playlist").getJSONArray("trackIds");
+            // JSONArray tracks =
+            // jsonObject.getJSONObject("playlist").getJSONArray("tracks"); можно сделать
+            // если всего треков меньше 100
+            JSONArray ids;
+            if (isPlaylist) {
+                ids = jsonObject.getJSONObject("playlist").getJSONArray("trackIds");
+            } else {
+                ids = jsonObject.getJSONArray("trackIds");
+            }
             int len = ids.length();
             for (int i = 0; i < ids.length() - 100; i += 100) {
                 StringBuilder ans = getStringForGetRequest(ids, i, 100);
@@ -56,7 +71,6 @@ public class YmParser {
                 len -= 100;
             }
 
-
             StringBuilder ans = getStringForGetRequest(ids, ids.length() - len, len);
             Connection.Response postResponse = Jsoup.connect("https://music.yandex.ru/handlers/track-entries.jsx")
                     .method(Connection.Method.POST)
@@ -69,17 +83,18 @@ public class YmParser {
 
             HashMap<String, List<String>> data1 = makeMapOfTracks(postJsonArray);
             data.putAll(data1);
-            for (String key : data.keySet()) {
-                System.out.println(key + " " + data.get(key));
-            }
+            /*
+             * for (String key : data.keySet()) {
+             * System.out.println(key + " " + data.get(key));
+             * }
+             */
         } catch (IOException e) {
             e.printStackTrace();
         }
         return data;
     }
 
-
-    private StringBuilder getStringForGetRequest(JSONArray ids, int i, int size){
+    private StringBuilder getStringForGetRequest(JSONArray ids, int i, int size) {
         StringBuilder ans = new StringBuilder();
         for (int j = 0; j < size; j++) {
             if (ids.get(j + i) instanceof Integer) {
@@ -93,7 +108,6 @@ public class YmParser {
         ans = new StringBuilder(ans.substring(1));
         return ans;
     }
-
 
     private HashMap<String, List<String>> makeMapOfTracks(JSONArray postJsonArray) {
         HashMap<String, List<String>> data = new HashMap<>();
@@ -109,8 +123,22 @@ public class YmParser {
                 artistNames.append(artists.getJSONObject(j).getString("name"));
             }
             String artistName = artistNames.toString();
-            data.computeIfAbsent(artistName, key -> new ArrayList<>()).add(title);
+            data.computeIfAbsent(artistName, c -> new ArrayList<>()).add(title);
         }
         return data;
+    }
+
+    private static final String YANDEX_MUSIC_URL_REGEX = "https?://music\\.yandex\\.ru/(playlist|album)/[0-9a-zA-Z_-]+";
+
+    private static final Pattern YANDEX_MUSIC_PATTERN = Pattern.compile(YANDEX_MUSIC_URL_REGEX);
+
+    /**
+     * Validates if the given URL is a valid Yandex Music playlist or album link.
+     *
+     * @param url the URL to validate
+     * @return true if the URL is a valid Yandex Music link, false otherwise
+     */
+    private static boolean isValidYandexMusicLink(String url) {
+        return YANDEX_MUSIC_PATTERN.matcher(url).matches();
     }
 }
