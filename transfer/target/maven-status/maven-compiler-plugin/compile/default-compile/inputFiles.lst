@@ -1,0 +1,8 @@
+/home/flexmatik/Frontend-yandex-to-spotify/NoNameProject/transfer/src/main/java/com/spotify_app/transfer/TransferApplication.java
+/home/flexmatik/Frontend-yandex-to-spotify/NoNameProject/transfer/src/main/java/com/spotify_app/transfer/config/SecurityConfig.java
+/home/flexmatik/Frontend-yandex-to-spotify/NoNameProject/transfer/src/main/java/com/spotify_app/transfer/config/SpotifyConfig.java
+/home/flexmatik/Frontend-yandex-to-spotify/NoNameProject/transfer/src/main/java/com/spotify_app/transfer/config/WebConfig.java
+/home/flexmatik/Frontend-yandex-to-spotify/NoNameProject/transfer/src/main/java/com/spotify_app/transfer/controller/SpotifyController.java
+/home/flexmatik/Frontend-yandex-to-spotify/NoNameProject/transfer/src/main/java/com/spotify_app/transfer/entity/UserDetails.java
+/home/flexmatik/Frontend-yandex-to-spotify/NoNameProject/transfer/src/main/java/com/spotify_app/transfer/parser/YmParser.java
+/home/flexmatik/Frontend-yandex-to-spotify/NoNameProject/transfer/src/main/java/com/spotify_app/transfer/service/UserService.java

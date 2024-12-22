@@ -1,0 +1,7 @@
+com/spotify_app/transfer/config/SecurityConfig.class
+com/spotify_app/transfer/service/UserService.class
+com/spotify_app/transfer/config/SpotifyConfig.class
+com/spotify_app/transfer/config/WebConfig.class
+com/spotify_app/transfer/TransferApplication.class
+com/spotify_app/transfer/controller/SpotifyController.class
+com/spotify_app/transfer/entity/UserDetails.class
