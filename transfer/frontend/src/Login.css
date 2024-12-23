@@ -1,0 +1,131 @@
+.page-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.login-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-content {
+  background: rgba(40, 40, 40, 0.9);
+  border-radius: 15px;
+  padding: 40px;
+  max-width: 800px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  animation: slide-in 0.5s ease-in-out;
+  margin-top: 80px;
+  margin-bottom: 100px;
+}
+
+.welcome-text h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  background: linear-gradient(45deg, #a78601, #1DB954);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.benefits-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+}
+
+.benefit-item {
+  background: rgba(60, 60, 60, 0.9);
+  padding: 20px;
+  border-radius: 12px;
+  color: white;
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.benefit-item:hover {
+  transform: translateY(-5px);
+}
+
+.login-link, .back-button {
+  width: 250px;
+  margin: 0;
+}
+
+.login-link {
+  display: inline-block;
+  padding: 15px 30px;
+  color: #ffffff;
+  background: linear-gradient(45deg, #a78601, #1DB954);
+  border-radius: 25px;
+  text-decoration: none;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: background-color 0.3s;
+  margin-bottom: 20px;
+  transition: transform 0.3s;
+}
+
+.login-link:hover {
+  background-color: #1ed760;
+  transform: scale(1.1);
+}
+
+.back-button {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #333;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  transition: transform 0.3s;
+}
+
+.back-button:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.1);
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-container {
+  animation: slide-in 0.5s ease-in-out;
+}
+
+.login-message {
+  color: white;
+  background: rgba(40, 40, 40, 0.9);
+  border-radius: 10px;
+  padding: 15px 25px;
+  margin-bottom: 25px;
+  text-align: center;
+  max-width: 80%;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: slide-in 0.3s;
+}
