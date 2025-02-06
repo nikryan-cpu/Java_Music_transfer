@@ -9,12 +9,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 public class YmParser {
-    public HashMap<String, List<String>> parsing(String url) {
+    public Map<String, List<String>> parsing(String url) {
         HashMap<String, List<String>> data = new HashMap<>();
         if (!isValidYandexMusicLink(url)) {
             return data;
@@ -51,7 +52,7 @@ public class YmParser {
 
             // JSONArray tracks =
             // jsonObject.getJSONObject("playlist").getJSONArray("tracks"); можно сделать
-            // если всего треков меньше 100
+            // if at all less than 100 songs
             JSONArray ids;
             if (isPlaylist) {
                 ids = jsonObject.getJSONObject("playlist").getJSONArray("trackIds");
@@ -86,11 +87,6 @@ public class YmParser {
 
             HashMap<String, List<String>> data1 = makeMapOfTracks(postJsonArray);
             data.putAll(data1);
-            /*
-             * for (String key : data.keySet()) {
-             * System.out.println(key + " " + data.get(key));
-             * }
-             */
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -178,7 +178,7 @@ public class SpotifyController {
         String userId = userService.getCurrentUser().getRefId();
 
         YmParser ymParser = new YmParser();
-        HashMap<String, List<String>> songs = ymParser.parsing(playlistLink);
+        HashMap<String, List<String>> songs = (HashMap<String, List<String>>) ymParser.parsing(playlistLink);
 
         if (songs.isEmpty()) {
             return "No songs available";
@@ -208,16 +208,7 @@ public class SpotifyController {
             return "Error creating playlist";
         }
 
-        AddItemsToPlaylistRequest addItemsToPlaylistRequest = spotifyApi
-                .addItemsToPlaylist(playlistId, uris)
-                .build();
-        try {
-            final SnapshotResult snapshotResult = addItemsToPlaylistRequest.execute();
-
-            System.out.println("Snapshot ID: " + snapshotResult.getSnapshotId());
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+        addingItemsToPLayList(uris, spotifyApi, playlistId);
         return "Playlist created successfully";
     }
 
@@ -268,12 +259,12 @@ public class SpotifyController {
      * @param spotifyPlaylistLink the URL of the Spotify playlist
      */
     @PostMapping("add-to-existing")
-    public void add_to_existing(@RequestParam("yandexLink") String yandexPlaylistLink,
-            @RequestParam("spotifyLink") String spotifyPlaylistLink) {
+    public void addToExisting(@RequestParam("yandexLink") String yandexPlaylistLink,
+                              @RequestParam("spotifyLink") String spotifyPlaylistLink) {
         String accessToken = userService.getCurrentUser().getAccessToken();
 
         YmParser ymParser = new YmParser();
-        HashMap<String, List<String>> songs = ymParser.parsing(yandexPlaylistLink);
+        HashMap<String, List<String>> songs = (HashMap<String, List<String>>) ymParser.parsing(yandexPlaylistLink);
 
         if (songs.isEmpty()) {
             System.out.println("No songs available");
@@ -295,6 +286,11 @@ public class SpotifyController {
             return;
         }
 
+        addingItemsToPLayList(uris, spotifyApi, playlistId);
+
+    }
+
+    private void addingItemsToPLayList(String[] uris, SpotifyApi spotifyApi, String playlistId) {
         AddItemsToPlaylistRequest addItemsToPlaylistRequest = spotifyApi
                 .addItemsToPlaylist(playlistId, uris)
                 .build();
@@ -305,7 +301,6 @@ public class SpotifyController {
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             System.out.println("Error: " + e.getMessage());
         }
-
     }
 
     private String extractPlaylistId(String url) {
