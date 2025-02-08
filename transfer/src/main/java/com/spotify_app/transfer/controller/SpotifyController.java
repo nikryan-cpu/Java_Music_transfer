@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -39,7 +41,6 @@ import se.michaelthelin.spotify.requests.data.users_profile.GetCurrentUsersProfi
 
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.PostMapping;
 import com.spotify_app.transfer.parser.YmParser;
 
@@ -48,6 +49,8 @@ import com.spotify_app.transfer.parser.YmParser;
 @RequestMapping("/api")
 @PropertySource("classpath:application.properties")
 public class SpotifyController {
+
+    private static final Logger logger = LoggerFactory.getLogger(SpotifyController.class);
 
     @Value("${spotify.client-id}")
     private String clientID;
@@ -58,15 +61,21 @@ public class SpotifyController {
     @Value("${custom.server.ip}")
     private String customIP;
 
-    @Autowired
-    private SpotifyConfig spotifyConfig;
+    private final SpotifyConfig spotifyConfig;
 
-    @Autowired
     private UserService userService;
 
-    private String code = "";
-
     private String name = "";
+
+    @Autowired
+    public SpotifyController(SpotifyConfig spotifyConfig) {
+        this.spotifyConfig = spotifyConfig;
+    }
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/welcome")
     public String welcome() {
@@ -74,29 +83,19 @@ public class SpotifyController {
     }
 
     @GetMapping("/login")
-    @ResponseBody
     public String login() {
         SpotifyApi spotifyApi = spotifyConfig.getSpotifyObject();
 
         AuthorizationCodeUriRequest request = spotifyApi.authorizationCodeUri()
-                .scope(// "user-read-email " +
+                .scope(
                         "user-read-private " +
-                        // "user-read-playback-state " +
-                        // "user-modify-playback-state " +
-                        // "user-read-currently-playing " +
-                        // "user-read-recently-played " +
                                 "user-top-read " +
-                                // "user-follow-read " +
-                                // "user-follow-modify " +
                                 "user-library-read " +
                                 "user-library-modify " +
-                                // "streaming " +
-                                // "app-remote-control " +
                                 "playlist-read-private " +
                                 "playlist-read-collaborative " +
                                 "playlist-modify-public " +
-                                "playlist-modify-private "
-                // "ugc-image-upload"
+                                "playlist-modify-private"
                 )
                 .show_dialog(true)
                 .build();
@@ -110,10 +109,9 @@ public class SpotifyController {
 
         SpotifyApi spotifyApi = spotifyConfig.getSpotifyObject();
 
-        code = userCode;
-        AuthorizationCodeRequest authorizationCodeRequest = spotifyApi.authorizationCode(code)
+        AuthorizationCodeRequest authorizationCodeRequest = spotifyApi.authorizationCode(userCode)
                 .build();
-        User user = null;
+        User user;
 
         try {
             final AuthorizationCodeCredentials credentials = authorizationCodeRequest.execute();
@@ -132,7 +130,7 @@ public class SpotifyController {
         response.sendRedirect("http://localhost:5173/home?id=" + user.getId());
 
         } catch (Exception e) {
-            System.out.println("Error in callback: " + e.getMessage());
+            logger.error("Error in callback while processing code {}: {}", userCode, e.getMessage(), e);
         // Redirect to frontend error page
             response.sendRedirect("http://localhost:5173/error");
         }
@@ -159,7 +157,7 @@ public class SpotifyController {
         try {
             return "Welcome, " + name;
         } catch (Exception e) {
-            System.out.println("Exception occurred while landing to home page: " + e);
+            logger.error("Error loading home page for user {}: {}", userId, e.getMessage(), e);;
         }
 
         return null;
@@ -186,7 +184,7 @@ public class SpotifyController {
 
         List<String> urisList = getTracksURI(songs);
 
-        String[] uris = new String[] {};
+        String[] uris;
         uris = urisList.toArray(new String[0]);
 
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
@@ -226,7 +224,7 @@ public class SpotifyController {
 
             for (String song : songList) {
                 String q = artist + " " + song;
-                String uri = "";
+                String uri;
                 Track track = null;
 
                 SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(q)
@@ -273,7 +271,7 @@ public class SpotifyController {
 
         List<String> urisList = getTracksURI(songs);
 
-        String[] uris = new String[] {};
+        String[] uris;
         uris = urisList.toArray(new String[0]);
 
         SpotifyApi spotifyApi = new SpotifyApi.Builder()

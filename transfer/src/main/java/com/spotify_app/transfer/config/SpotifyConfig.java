@@ -2,7 +2,6 @@ package com.spotify_app.transfer.config;
 
 import java.net.URI;
 
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

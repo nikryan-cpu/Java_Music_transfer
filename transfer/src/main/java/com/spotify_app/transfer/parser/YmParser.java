@@ -62,35 +62,29 @@ public class YmParser {
             int len = ids.length();
             for (int i = 0; i < ids.length() - 100; i += 100) {
                 StringBuilder ans = getStringForGetRequest(ids, i, 100);
-                Connection.Response postResponse = Jsoup.connect("https://music.yandex.ru/handlers/track-entries.jsx")
-                        .method(Connection.Method.POST)
-                        .data("entries", ans.toString())
-                        .ignoreContentType(true)
-                        .execute();
-
-                String postJsonResponse = postResponse.body();
-                JSONArray postJsonArray = new JSONArray(postJsonResponse);
-                HashMap<String, List<String>> data1 = makeMapOfTracks(postJsonArray);
-                data.putAll(data1);
+                connection(data, ans);
                 len -= 100;
             }
 
             StringBuilder ans = getStringForGetRequest(ids, ids.length() - len, len);
-            Connection.Response postResponse = Jsoup.connect("https://music.yandex.ru/handlers/track-entries.jsx")
-                    .method(Connection.Method.POST)
-                    .data("entries", ans.toString())
-                    .ignoreContentType(true)
-                    .execute();
-
-            String postJsonResponse = postResponse.body();
-            JSONArray postJsonArray = new JSONArray(postJsonResponse);
-
-            HashMap<String, List<String>> data1 = makeMapOfTracks(postJsonArray);
-            data.putAll(data1);
+            connection(data, ans);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return data;
+    }
+
+    private void connection(HashMap<String, List<String>> data, StringBuilder ans) throws IOException {
+        Connection.Response postResponse = Jsoup.connect("https://music.yandex.ru/handlers/track-entries.jsx")
+                .method(Connection.Method.POST)
+                .data("entries", ans.toString())
+                .ignoreContentType(true)
+                .execute();
+
+        String postJsonResponse = postResponse.body();
+        JSONArray postJsonArray = new JSONArray(postJsonResponse);
+        HashMap<String, List<String>> data1 = makeMapOfTracks(postJsonArray);
+        data.putAll(data1);
     }
 
     private StringBuilder getStringForGetRequest(JSONArray ids, int i, int size) {
@@ -127,7 +121,7 @@ public class YmParser {
         return data;
     }
 
-    private static final String YANDEX_MUSIC_URL_REGEX = "https:\\/\\/music\\.yandex\\.(?:ru|com)\\/(?:playlist|users|album|artist|label)\\/[^\\/]+(?:\\/playlists|\\/albums)?\\/?[^\\/]*\\/?[^\\/]*";
+    private static final String YANDEX_MUSIC_URL_REGEX = "https://music\\.yandex\\.(?:ru|com)/(?:playlist|users|album|artist|label)/[^/]+(?:/playlists|/albums)?/?[^/]*/?[^/]*";
 
     private static final Pattern YANDEX_MUSIC_PATTERN = Pattern.compile(YANDEX_MUSIC_URL_REGEX);
 
