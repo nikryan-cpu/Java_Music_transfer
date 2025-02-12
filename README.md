@@ -24,5 +24,56 @@
 | **Auth**        | OAuth 2.0 (Spotify)                                             |     
 
 ## 🚀 Fast Start
-```bash
+
+Spotify Developer Setup
+
+Go to Spotify Developer Dashboard.
+
+Log in with your Spotify account.
+
+Click Create App in the dashboard.
+
+Enter any app name and description.
+
+Under Redirect URIs, add: http://localhost:8080/api/callback.
+
+Select Web API and click Save.
+
+Get API Credentials
+
+In the app's Settings, copy the Client ID and Client Secret.
+
+Paste these credentials into the application.properties file located at:
+transfer/src/main/resources/application.properties.
+
+
+Clone the Repository
+
 git clone https://github.com/nikryan-cpu/Java_Music_transfer.git
+
+
+Backend Setup
+
+Open a terminal and navigate to the transfer folder:
+
+
+cd Java_Music_transfer/transfer
+Build and run the Spring Boot application:
+
+
+mvnw.cmd clean install
+mvnw.cmd spring-boot:run
+Frontend Setup
+
+Open a second terminal and navigate to the frontend folder:
+
+cd Java_Music_transfer/transfer/frontend
+
+Install dependencies and start the development server:
+
+npm install
+npm run dev
+
+Access the Platform
+Open your browser and go to:
+http://localhost:8080
