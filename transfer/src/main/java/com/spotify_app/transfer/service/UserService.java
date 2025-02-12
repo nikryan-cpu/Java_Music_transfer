@@ -1,7 +1,8 @@
 package com.spotify_app.transfer.service;
 
-import com.spotify_app.transfer.entity.UserDetails; 
 
+
+import com.spotify_app.transfer.entity.UserDetails;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.model_objects.specification.User;
 import se.michaelthelin.spotify.model_objects.specification.Image;
