@@ -22,55 +22,65 @@
 
 ## 🚀 Fast Start
 
-Spotify Developer Setup
+### Spotify Developer Setup
 
-Go to Spotify Developer Dashboard.
+• Go to Spotify Developer Dashboard:
+```
+https://developer.spotify.com
+```
+• Log in with your Spotify account.
 
-Log in with your Spotify account.
+• Click Create App in the dashboard.
 
-Click Create App in the dashboard.
+• Enter any app name and description.
 
-Enter any app name and description.
+• Under Redirect URIs, add: 
+```
+http://localhost:8080/api/callback
+```
+• Select Web API and click Save.
 
-Under Redirect URIs, add: http://localhost:8080/api/callback.
+#### Get API Credentials
 
-Select Web API and click Save.
+• In the app's Settings, copy the Client ID and Client Secret.
 
-Get API Credentials
-
-In the app's Settings, copy the Client ID and Client Secret.
-
-Paste these credentials into the application.properties file located at:
+• Paste these credentials into the application.properties file located at:
 transfer/src/main/resources/application.properties.
 
 
-Clone the Repository
+### Backend Setup
 
+• Clone the Repository
+```
 git clone https://github.com/nikryan-cpu/Java_Music_transfer.git
+```
 
+• Open a terminal and navigate to the transfer folder
 
-Backend Setup
-
-Open a terminal and navigate to the transfer folder:
-
-
-cd Java_Music_transfer/transfer
-Build and run the Spring Boot application:
-
-
+• Build and run the Spring Boot application:
+```
 mvnw.cmd clean install
 mvnw.cmd spring-boot:run
-Frontend Setup
+```
 
-Open a second terminal and navigate to the frontend folder:
+### Frontend Setup
 
+• Open a second terminal and navigate to the frontend folder:
+```
 cd Java_Music_transfer/transfer/frontend
+```
 
-Install dependencies and start the development server:
-
+• Install dependencies
+```
 npm install
+```
+• Start the server:
+```
 npm run dev
+```
 
-Access the Platform
-Open your browser and go to:
+### Access the Platform
+• Open your browser and go to:
+```
 http://localhost:8080
+```
